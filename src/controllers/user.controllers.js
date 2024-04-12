@@ -94,9 +94,35 @@ const logInUser = asyncHandler(async (req, res) => {
 
 })
 
+const logOutUser = asyncHandler(async (req, res) =>{
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set : {
+                refershToken : undefined
+            }
+        },
+        {
+            new : true
+        }
+    )
+
+    const options = {
+        httpOnly : true,
+        secure : true
+    }
+
+    return req
+    .status(200)
+    .clearCookie("refershToken", options)
+    .json(
+        new ApiResponse(200, "Logout Successfully", {})
+    );
+})
 
 export {
     signUpUser,
     logInUser,
+    logOutUser,
 
 }
