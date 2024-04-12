@@ -1,11 +1,11 @@
 import cookieParser from "cookie-parser";
 import express, { urlencoded } from "express";
-import { createServer } from "http";
+import { createServer } from "node:http"
 import { Server } from "socket.io";
 
 const app = express();
 
-const httpServer = createServer(app)
+const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
     pingTimeout: 60000,
@@ -21,5 +21,10 @@ app.use(express.json({ limit : "16kb"}));
 app.use(urlencoded({extended : true, limit : "16kb"}));
 app.use(express.static("public"));
 app.use(cookieParser());
+
+// import routes 
+import userRouter from "../src/routes/auth.routes.js"
+
+app.use("/api/v1/auth", userRouter);
 
 export {httpServer}
