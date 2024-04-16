@@ -1,11 +1,10 @@
 import jwt from "jsonwebtoken";
-import asyncHandler from "../utils/asyncHandler";
-import ApiError from "../utils/apiError";
-import { User } from "../models/user.models";
-
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/apiError.js";
+import { User } from "../models/user.models.js";
 
 export const verifyJwt = asyncHandler(async (req, res, next ) =>{
-    const token = req.cookies.refershToken;
+    const token = req.cookies?.refershToken || req.header("Authorization")?.replace("Bearer ", "");
     
     if(!token) {
         throw new ApiError(400, "Unautherized Request!");

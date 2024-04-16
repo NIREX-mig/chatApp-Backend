@@ -2,6 +2,7 @@ import { User } from "../models/user.models.js";
 import asyncHandler from "../utils/asyncHandler.js"
 import ApiError from "../utils/apiError.js"
 import ApiResponse from "../utils/apiResponse.js"
+import { v2 as cloudinary } from "cloudinary";
 
 const genrateRefershToken = async (userId) => {
     try {
@@ -18,6 +19,10 @@ const genrateRefershToken = async (userId) => {
         throw new ApiError(500, "Something went worng during create token!")
     }
 };
+
+/*------------------------------ 
+    Signup : /api/v1/auth/signup
+------------------------------*/
 
 
 const signUpUser = asyncHandler(async (req, res) => {
@@ -49,6 +54,11 @@ const signUpUser = asyncHandler(async (req, res) => {
             new ApiResponse(200, "Successfully register", user)
         );
 });
+
+
+/*------------------------------ 
+    login : /api/v1/auth/login
+------------------------------*/
 
 const logInUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -94,12 +104,16 @@ const logInUser = asyncHandler(async (req, res) => {
 
 })
 
+/*------------------------------ 
+    Logout : /api/v1/auth/logout
+------------------------------*/
+
 const logOutUser = asyncHandler(async (req, res) =>{
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set : {
-                refershToken : undefined
+            $unset : {
+                refershToken : 1
             }
         },
         {
@@ -112,7 +126,7 @@ const logOutUser = asyncHandler(async (req, res) =>{
         secure : true
     }
 
-    return req
+    return res
     .status(200)
     .clearCookie("refershToken", options)
     .json(
@@ -120,9 +134,27 @@ const logOutUser = asyncHandler(async (req, res) =>{
     );
 })
 
+// /*------------------------------ 
+//     Logout : /api/v1/auth/logout
+// ------------------------------*/
+
+// const searchUser = asyncHandler(async (req, res) => {
+//     // todo
+// })
+
+/*------------------------------ 
+    UpdateProfilePic : /api/v1/user/updateprofilepic
+------------------------------*/
+const updateprofilepic = asyncHandler(async (req, res) => {
+    // todo 
+    res.status(200).json({message : "updateprofilepic"})
+})
+
 export {
     signUpUser,
     logInUser,
     logOutUser,
+    // searchUser,
+    updateprofilepic,
 
 }

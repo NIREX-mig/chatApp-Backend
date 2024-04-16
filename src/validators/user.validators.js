@@ -4,7 +4,7 @@ const signupValidator = () => {
     return [
         body("username", "username not empty").notEmpty(),
         body("email", "Enter a valid Email").isEmail(),
-        body("password", "password contain atleast 3 char").isLength({ min: 8 })
+        body("password", "password contain atleast 8 char").isLength({ min: 8 })
     ];
 }
 

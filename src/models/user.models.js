@@ -52,10 +52,12 @@ UserSchema.methods.isPasswordCorrect = async function (password) {
 
 UserSchema.methods.genrateRefershToken = function () {
 
+    const payload = {
+        id : this._id,
+    }
+
     return jwt.sign(
-        {
-            id : this._id,
-        },
+        payload,
 
         process.env.REFERSH_TOKEN_SECRET,
         

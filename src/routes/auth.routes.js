@@ -8,22 +8,24 @@ import {verifyJwt} from "../middlewares/auth.middlewares.js"
 const router = express.Router();
 
 
-router.route('/sign-up').post(
+router.route('/signup').post(
     signupValidator(),
     validate,
     signUpUser
 );
 
-router.route('/log-in').post(
+router.route('/login').post(
     loginValidator(),
     validate,
     logInUser
 );
 
-router.route("/log-out").post(
+router.route("/logout").post(
     verifyJwt,
     logOutUser
 )
+
+
 
 
 export default router;
