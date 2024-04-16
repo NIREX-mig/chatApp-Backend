@@ -2,7 +2,7 @@ import { User } from "../models/user.models.js";
 import asyncHandler from "../utils/asyncHandler.js"
 import ApiError from "../utils/apiError.js"
 import ApiResponse from "../utils/apiResponse.js"
-import { v2 as cloudinary } from "cloudinary";
+import {upploadOnCloudinary} from "../utils/FileUpload.js"
 
 const genrateRefershToken = async (userId) => {
     try {
@@ -146,8 +146,32 @@ const logOutUser = asyncHandler(async (req, res) =>{
     UpdateProfilePic : /api/v1/user/updateprofilepic
 ------------------------------*/
 const updateprofilepic = asyncHandler(async (req, res) => {
-    // todo 
-    res.status(200).json({message : "updateprofilepic"})
+    
+    const avatarLocalPath = req.file?.path;
+
+    if(!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required");
+    }
+
+    // upload them to cloudinary
+    const avatar = await upploadOnCloudinary(avatarLocalPath);
+
+    if(!avatar){
+        throw new ApiError(400, "Avatar file is required");
+    }
+
+    // find loged in user
+    const user = await User.findById(req.user._id); 
+
+    if(!user) {
+        throw new ApiError(400, "Login required!");
+    }
+
+    // save avatar in database
+    user.avatar = avatar.url;
+    await user.save({validateBeforeSave : false});
+    return res.status(200).json(new ApiResponse(200, "Profile pic Update successfully."));
+
 })
 
 export {
