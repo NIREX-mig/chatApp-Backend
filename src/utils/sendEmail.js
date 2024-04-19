@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import ApiError from "../utils/apiError.js"
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -27,7 +26,7 @@ const sendEmail = async (username) => {
 
         const info = await transporter.sendMail(mailOptions)
         
-        console.log("Message sent: %s", info.messageId);
+        // console.log("Message sent: %s", info.messageId);
 
     } catch (error) {
         console.log("Some Error occured during sending Email!")
