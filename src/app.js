@@ -33,10 +33,11 @@ app.use(cors(
 // import routes 
 import authRouter from "../src/routes/auth.routes.js"
 import userRouter from "../src/routes/user.routes.js"
+import chatRouter from "../src/routes/chat.routes.js"
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
-// app.use("/api/v1/chat", chatRouter)
+app.use("/api/v1/chat", chatRouter)
 // app.use("/api/v1/message", messageRouter)
 
 export { httpServer }

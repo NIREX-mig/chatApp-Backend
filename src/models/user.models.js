@@ -18,6 +18,7 @@ const UserSchema = new Schema({
 
     avatar: {
         type: String,
+        default : "https://res.cloudinary.com/dhhn9dmct/image/upload/v1714033728/l4jispdddygamoxojs7q.jpg"
     },
 
     password: {
@@ -27,6 +28,10 @@ const UserSchema = new Schema({
 
     refershToken: {
         type: String,
+    },
+
+    forgotPasswordToken :{
+        type : String,
     }
 
 }, { timestamps: true });

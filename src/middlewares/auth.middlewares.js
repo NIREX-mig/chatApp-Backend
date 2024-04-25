@@ -3,22 +3,21 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { User } from "../models/user.models.js";
 import ApiResponse from "../utils/apiResponse.js"
 
-export const verifyJwt = asyncHandler(async (req, res, next ) =>{
-    const token = req.cookies?.refershToken || req.header("Authorization") 
-    // ?.replace("Bearer", "");
-    
-    if(!token) {
-        return res.status(400).json(new ApiResponse(400, "Unautherized Request!"));
-    };
+export const jwtVerify = asyncHandler(async (req, res, next) => {
+        const token = req.cookies?.refershToken || req.headers.authorization?.split(' ')[1];
 
-    const decordedToken = jwt.verify(token,process.env.REFERSH_TOKEN_SECRET);
+        if (!token) {
+            return res.status(400).json(new ApiResponse(400, "Unautherized Request!"));
+        };
 
-    const user = await User.findById(decordedToken.id).select("-password -refershToken");
+        const decordedToken = jwt.verify(token, process.env.REFERSH_TOKEN_SECRET);
 
-    if(!user) {
-        return res.status(400).json(new ApiResponse(400, "Invalid Refersh Token"));
-    }
+        const user = await User.findById(decordedToken.id).select("-password -refershToken");
 
-    req.user = user;
-    next();
+        if (!user) {
+            return res.status(400).json(new ApiResponse(400, "Invalid Refersh Token"));
+        }
+
+        req.user = user;
+        next();
 })

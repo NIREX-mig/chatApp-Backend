@@ -1,8 +1,8 @@
 import express from "express";
-import { signUpUser, logInUser, logOutUser } from "../controllers/user.controllers.js";
+import { signUpUser, logInUser, logOutUser, forgotPassword, forgotPasswordRequest } from "../controllers/user.controllers.js";
 import { signupValidator, loginValidator } from "../validators/user.validators.js";
 import {validate} from "../validators/validate.js"
-import {verifyJwt} from "../middlewares/auth.middlewares.js"
+import {jwtVerify} from "../middlewares/auth.middlewares.js"
 
 
 const router = express.Router();
@@ -21,8 +21,16 @@ router.route('/login').post(
 );
 
 router.route("/logout").post(
-    verifyJwt,
+    jwtVerify,
     logOutUser
+)
+
+router.route("/forgotpasswordrequest").post(
+    forgotPasswordRequest
+);
+
+router.route("/forgotpassword").patch(
+    forgotPassword
 )
 
 
