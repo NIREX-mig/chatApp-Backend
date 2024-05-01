@@ -30,11 +30,14 @@ app.use(cors(
     }
 ))
 
+initialiseSocket(io);
+
 // import routes 
 import authRouter from "../src/routes/auth.routes.js"
 import userRouter from "../src/routes/user.routes.js"
 import chatRouter from "../src/routes/chat.routes.js"
 import messageRouter from "../src/routes/message.routes.js"
+import { initialiseSocket } from "./socket/index.js";
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);

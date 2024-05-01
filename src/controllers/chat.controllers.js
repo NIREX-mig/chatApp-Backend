@@ -2,7 +2,7 @@ import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { User } from "../models/user.models.js";
 import { Chat } from "../models/chat.models.js"
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 
 /*------------------------------ 
@@ -22,34 +22,109 @@ const createOneToOnechat = asyncHandler(async (req, res) => {
         return res.status(400).json(new ApiResponse(400, "Not Allowed Chat With Yourself!"));
     }
 
+    // find duplicate chat 
+    // const chat = await Chat.aggregate([
+        // {
+        //     $match: {
+        //         admin: new mongoose.Types.ObjectId(req.user?._id),
+        //         $and: [
+        //             {
+        //                 participants: { $elemMatch : { $eq : req.user._id}}
+        //             },
+        //             {
+        //                 participants: { $elemMatch : { $eq : new mongoose.Types.ObjectId(receiverId)}}
+        //             }
+        //         ]
+        //     }
+        // },
+        // {
+        //     $lookup : {
+        //         from : "users",
+        //         foreignField : "_id",
+        //         localField : "participants",
+        //         as : "participants",
+        //         pipeline : [
+        //             {
+        //                 $project : {
+        //                     password : 0,
+        //                     refershToken : 0,
+        //                     forgetPasswordToken : 0,
+        //                     createdAt : 0,
+        //                     updatedAt : 0,
+        //                 }
+        //             }
+        //         ]
+        //     }
+        // }
+
     const chat = await Chat.aggregate([
         {
-            $match : {
-                admin : new mongoose.Types.ObjectId(req.user?._id),
-                $and : [
+            $match: {
+                admin: new mongoose.Types.ObjectId(req.user?._id),
+                $and: [
                     {
-                        participants : new mongoose.Types.ObjectId(req.user?._id)
+                        participants: new mongoose.Types.ObjectId(req.user?._id)
                     },
                     {
-                        participants : new mongoose.Types.ObjectId(receiverId)
+                        participants: new mongoose.Types.ObjectId(receiverId)
                     }
                 ]
             }
-        }
-
+        },
     ]);
 
-    if(chat.length) {
-        return res.status(400).json(new ApiResponse(400, "Chat Already Added!"));
+    if (chat.length) {
+        return res.status(400).json(new ApiResponse(400, "Chat Allready Exist."));
     }
 
-    const newChat = await Chat.create({
+    const newChatInstance = await Chat.create({
         name: "onetoonechat",
         participants: [req.user._id, new mongoose.Types.ObjectId(receiverId)],
         admin: req.user._id
     })
 
-    return res.status(200).json(new ApiResponse(200, "Chat Created Successfully.", { receiver }))
+    // const newChatId = await Chat.findById(newChatInstance._id).select("-name -participants -admin -createdAt -updatedAt")
+
+    const createdChat = await Chat.aggregate([
+        {
+            $match : {
+                _id : newChatInstance._id,
+            },
+        },
+        {
+            $lookup : {
+                from : "users",
+                foreignField : "_id",
+                localField : "participants",
+                as : "participants",
+                pipeline : [
+                    {
+                        $project : {
+                            password : 0,
+                            refershToken : 0,
+                            forgetPasswordToken : 0,
+                            createdAt : 0,
+                            updatedAt : 0,
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    const payload = createdChat[0];
+    
+    if(!payload) {
+        return res.status(500).json(new ApiResponse(500,"Internal server error"));
+    }
+
+    // if (!newChatId) {
+    //     return res.status(400).json(new ApiResponse(400, "Error occured during creation"));
+    // }
+
+
+    // return res.status(200).json(new ApiResponse(200, "Chat Created Successfully.", { receiver, newChatId }))
+    return res.status(200).json(new ApiResponse(200, "Chat Created Successfully.", payload))
 });
 
 /*------------------------------ 
@@ -91,47 +166,66 @@ const fetchAllChats = asyncHandler(async (req, res) => {
     const chats = await Chat.aggregate([
         {
             $match: {
-                admin : req.user?._id,
+                participants : { $elemMatch : { $eq : req.user._id}}
             }
         },
         {
-            $lookup : {
-                from : "users",
-                foreignField : "_id",
-                localField : "participants",
-                as : "participants",
-                pipeline : [
+            $sort : {
+                updatedAt : -1,
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                foreignField: "_id",
+                localField: "participants",
+                as: "participants",
+                pipeline: [
                     {
-                        $project : {
-                            password : 0,
-                            createdAt : 0,
-                            updatedAt : 0,
-                            refershToken : 0,
+                        $project: {
+                            password: 0,
+                            createdAt: 0,
+                            updatedAt: 0,
+                            refershToken: 0,
                         }
                     }
                 ]
             }
         },
         {
-            $addFields : {
-                receiver : {
-                    $arrayElemAt : ["$participants", 1]
+            $project : {
+                participants : {
+                    $filter : {
+                        input : "$participants",
+                        as : "participants",
+                        cond : { $ne : ["$$participants._id", req.user._id] }
+                    }
                 }
             }
-        },
-        {
-            $project : {
-                name : 0, 
-                admin : 0,
-                createdAt : 0,
-                updatedAt : 0,
-                participants : 0,
-            }
         }
+
+        // {
+        //     $addFields: {
+        //         receiver: {
+        //             $arrayElemAt: ["$participants", 1]
+        //         }
+        //     }
+        // },
+        // {
+        //     $project: {
+        //         name: 0,
+        //         admin: 0,
+        //         createdAt: 0,
+        //         updatedAt: 0,
+        //         participants: 0,
+        //     }
+        // }
     ])
 
-    return res.status(200).json(new ApiResponse(200, "Fetch All Chats", { chats }))
+    return res.status(200).json(new ApiResponse(200, "Fetch All Chats", chats))
 })
+
+
 
 export {
     createOneToOnechat,

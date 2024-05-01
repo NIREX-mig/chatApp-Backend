@@ -163,57 +163,98 @@ const updateprofilepic = asyncHandler(async (req, res) => {
 /*------------------------------ 
     ForgotPassword : /api/v1/auth/forgotpassword
 ------------------------------*/
-const forgotPassword = asyncHandler(async (req, res) =>{
+const forgotPassword = asyncHandler(async (req, res) => {
     const { newpassword } = req.body;
     const token = req.query?.token;
 
-    if(!token){
-        return res.status(400).json(new ApiResponse(400,"Not Allowed!"));
+    if (!token) {
+        return res.status(400).json(new ApiResponse(400, "Not Allowed!"));
     }
 
-    const decordedToken = jwt.verify(token,process.env.TEMP_TOKEN_SECRET);
+    const decordedToken = jwt.verify(token, process.env.TEMP_TOKEN_SECRET);
 
     const user = await User.findById(decordedToken.id);
 
-    if(!user){
+    if (!user) {
         return res.status(400).json(new ApiResponse(400, "Not Allowed!"));
     }
 
     user.password = newpassword;
 
     await user.save();
-    
+
     return res.status(200).json(new ApiResponse(200, "Forgot password successfully"));
 });
 
 /*------------------------------ 
     ForgotPasswordRequest : /api/v1/auth/forgotpasswordRequest
 ------------------------------*/
-const forgotPasswordRequest = asyncHandler(async (req, res) =>{
+const forgotPasswordRequest = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
-    const user = await User.findOne({email});
+    const user = await User.findOne({ email });
 
-    if(!user) {
+    if (!user) {
         return res.status(400).json(new ApiResponse(400, "Invalid Email!"))
     }
-    
+
     const payload = {
-        id : user._id,
+        id: user._id,
     }
 
-    const tempToken = jwt.sign(payload,process.env.TEMP_TOKEN_SECRET,{
-        expiresIn : "10m" 
+    const tempToken = jwt.sign(payload, process.env.TEMP_TOKEN_SECRET, {
+        expiresIn: "10m"
     });
 
-    sendForgotPasswordEmail(user.email,user.username,tempToken);
+    sendForgotPasswordEmail(user.email, user.username, tempToken);
 
     user.forgotPasswordToken = tempToken;
 
-    await user.save({validateBeforeSave : false});
+    await user.save({ validateBeforeSave: false });
 
-    return res.status(200).json(new ApiResponse(200, "Sent Forgot password Email.",{tempToken}))
+    return res.status(200).json(new ApiResponse(200, "Sent Forgot password Email.", { tempToken }))
 })
+
+/*------------------------------ 
+    RefershToken : /api/v1/auth/refershtoken;
+------------------------------*/
+const fetchRefershToken = asyncHandler(async (req, res) => {
+    const incommingRefershToken = req.cookies.refershToken || req.body.refershToken;
+
+    if (!incommingRefershToken) {
+        return res.status(401).json(new ApiResponse(401, "Unautherized Access!"));
+    }
+
+    try {
+        const decorededToken = jwt.verify(incommingRefershToken, process.env.REFERSH_TOKEN_SECRET);
+
+        const user = await User.findById(decorededToken.id);
+
+        if (!user) {
+            return res.status(401).json(new ApiResponse(401, "Invalid Refersh Token"));
+        }
+
+        if (incommingRefershToken !== user?.refershToken) {
+            return res.status(401).json(new ApiResponse(401, "Refersh Token Is Exprired Or Used!"));
+        }
+
+        const options = {
+            httpOnly: true,
+            secure: true,
+        }
+
+        const newRefershToken = await genrateRefershToken(user._id);
+
+        return res
+            .status(200)
+            .cookie("refershToken", newRefershToken, options)
+            .json(new ApiResponse(200, "Token Resfershed."))
+
+    } catch (error) {
+        const Error = error.message;
+        return res.status(401).json(new ApiResponse(401, "Invalid Refersh Token", { Error }));
+    }
+});
 
 export {
     signUpUser,
@@ -222,5 +263,6 @@ export {
     updateprofilepic,
     forgotPassword,
     forgotPasswordRequest,
+    fetchRefershToken,
 
 }

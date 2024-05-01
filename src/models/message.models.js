@@ -11,9 +11,9 @@ const MessageSchema = new Schema({
         required : true
     },
 
-    receiver : {
+    chat : {
         type : mongoose.Schema.Types.ObjectId,
-        ref : "User"
+        ref : "Chat"
     }
 }, {timestamps : true});
 

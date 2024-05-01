@@ -1,5 +1,5 @@
 import express from "express";
-import { signUpUser, logInUser, logOutUser, forgotPassword, forgotPasswordRequest } from "../controllers/user.controllers.js";
+import { signUpUser, logInUser, logOutUser, forgotPassword, forgotPasswordRequest, fetchRefershToken } from "../controllers/user.controllers.js";
 import { signupValidator, loginValidator } from "../validators/user.validators.js";
 import {validate} from "../validators/validate.js"
 import {jwtVerify} from "../middlewares/auth.middlewares.js"
@@ -31,6 +31,10 @@ router.route("/forgotpasswordrequest").post(
 
 router.route("/forgotpassword").patch(
     forgotPassword
+);
+
+router.route("/refershtoken").post(
+    fetchRefershToken
 )
 
 
