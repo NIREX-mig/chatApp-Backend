@@ -83,8 +83,6 @@ const createOneToOnechat = asyncHandler(async (req, res) => {
         admin: req.user._id
     })
 
-    // const newChatId = await Chat.findById(newChatInstance._id).select("-name -participants -admin -createdAt -updatedAt")
-
     const createdChat = await Chat.aggregate([
         {
             $match : {
@@ -109,21 +107,32 @@ const createOneToOnechat = asyncHandler(async (req, res) => {
                     }
                 ]
             }
+        },
+        {
+            $project : {
+                participants : {
+                    $filter : {
+                        input : "$participants",
+                        as : "participants",
+                        cond : { $ne : ["$$participants._id", req.user._id]}
+                    }
+                },
+            }
+        },
+        {
+            $addFields : {
+                participants : {
+                    $arrayElemAt : ["$participants", 0]
+                }
+            }
         }
     ])
-
     const payload = createdChat[0];
     
     if(!payload) {
         return res.status(500).json(new ApiResponse(500,"Internal server error"));
     }
 
-    // if (!newChatId) {
-    //     return res.status(400).json(new ApiResponse(400, "Error occured during creation"));
-    // }
-
-
-    // return res.status(200).json(new ApiResponse(200, "Chat Created Successfully.", { receiver, newChatId }))
     return res.status(200).json(new ApiResponse(200, "Chat Created Successfully.", payload))
 });
 
@@ -202,24 +211,14 @@ const fetchAllChats = asyncHandler(async (req, res) => {
                     }
                 }
             }
+        },
+        {
+            $addFields : {
+                participants : {
+                    $arrayElemAt : ["$participants", 0]
+                }
+            }
         }
-
-        // {
-        //     $addFields: {
-        //         receiver: {
-        //             $arrayElemAt: ["$participants", 1]
-        //         }
-        //     }
-        // },
-        // {
-        //     $project: {
-        //         name: 0,
-        //         admin: 0,
-        //         createdAt: 0,
-        //         updatedAt: 0,
-        //         participants: 0,
-        //     }
-        // }
     ])
 
     return res.status(200).json(new ApiResponse(200, "Fetch All Chats", chats))

@@ -69,13 +69,13 @@ const getAllMessage = asyncHandler(async (req, res) => {
         },
         {
             $sort : {
-                createdAt : -1
+                createdAt : 1
             }
         }
 
     ]);
 
-    return res.status(200).json(new ApiResponse(200, "Message Fetch Successfully." , {message}))
+    return res.status(200).json(new ApiResponse(200, "Message Fetch Successfully." , message))
 });
 
 export {
