@@ -21,7 +21,7 @@ const sendMessage = asyncHandler(async (req, res) => {
         chat: chatId
     })
 
-    return res.status(200).json(new ApiResponse(200, "Message saved successfully."));
+    return res.status(200).json(new ApiResponse(200, "Message saved successfully.",newMessage));
 });
 
 const getAllMessage = asyncHandler(async (req, res) => {
