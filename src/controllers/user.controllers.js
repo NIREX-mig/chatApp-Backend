@@ -248,7 +248,7 @@ const fetchRefershToken = asyncHandler(async (req, res) => {
         return res
             .status(200)
             .cookie("refershToken", newRefershToken, options)
-            .json(new ApiResponse(200, "Token Resfershed."))
+            .json(new ApiResponse(200, "Token Resfershed.",newRefershToken))
 
     } catch (error) {
         const Error = error.message;
