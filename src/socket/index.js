@@ -1,18 +1,33 @@
-const mountUserInSocket = (chatId) => {
-
-}
-
-const initialiseSocket = (io) => {
+const initialiseSocket = async (io) => {
     return io.on('connection', (socket) => {
 
-        socket.on("join_chat" , (chatId)=>{
+        console.log("socked connected....");
+
+        socket.on("join_chat", (chatId) => {
             socket.join(chatId);
-            console.log("join user with chat id " + chatId)
+            console.log("user Join Room with chatId : " + chatId);
+        });
+
+        socket.on("private_message", (newMessage) => {
+            const chatId = newMessage.chat;
+                socket.in(chatId).emit("received_message", newMessage)
         })
 
-        socket.on("private_message", ({message,room}) =>{
-            socket.to(room).emit("private_message", { message })
-        })  
+        socket.on("start_typing", (chatId) => {
+            socket.in(chatId).emit("start_typing", chatId);
+        });
+
+        socket.on("stop_typing", (chatId) => {
+            socket.in(chatId).emit("stop_typing", chatId);
+        });
+
+        socket.on("add_chat", ({ newChat, receiverId }) => {
+            io.emit("add_chat", { newChat });
+        })
+        socket.on("chat_leave", ({ chatId }) => {
+            socket.leave(chatId)
+            console.log("leave room " + chatId)
+        })
 
         socket.on('disconnect', () => {
             console.log('user disconnected');

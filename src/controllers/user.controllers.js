@@ -82,7 +82,7 @@ const logInUser = asyncHandler(async (req, res) => {
         secure: true
     }
 
-    await sendEmail(user.email, user.username);
+    // await sendEmail(user.email, user.username);
 
     return res
         .status(200)
